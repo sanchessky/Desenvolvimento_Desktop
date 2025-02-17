@@ -61,7 +61,7 @@ const templete =[
             {
                 label: 'Sair',
                 click: () => app.quit(),
-                acclerator: 'Alt+F4'
+                acclerator: 'ALT+F4'
             }
         ]      
     },
