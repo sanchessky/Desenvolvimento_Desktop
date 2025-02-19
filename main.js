@@ -70,6 +70,10 @@ app.on('window-all-closed', () => {
     }
   })
 
+// Reduzir logs não criticos
+
+app.commandLine.appendSwitch('log-level', '3')
+
 // Templete do MENU
 const templete =[
   {
