@@ -1,1 +1,21 @@
 @charset "utf-8"
+/*Botões (tela pricipal ) */
+
+.button img {
+    margin: 50px 15px 25px 15px;
+    padding: 5px;
+    border: 1px solid #e8e8e8;
+    cursor: pointer;
+}
+footer {
+    width: 100%;
+    height: 50px;
+    text-align: center;
+    background-color: blue;
+    position: fixed;
+    bottom: 0;
+}
+footer p {
+    color: #ffffff;
+    padding: 7px;
+}

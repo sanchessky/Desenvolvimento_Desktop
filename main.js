@@ -1,4 +1,11 @@
+//console.log("Processo Principal")
+
+
+
+//----------------------------------------------------------------------
+//Biblioteca do electron
 const { app, BrowserWindow, nativeTheme, Menu, shell } = require('electron')
+
 //----------------------------------------------------------------------
 //janela principal
 let win
