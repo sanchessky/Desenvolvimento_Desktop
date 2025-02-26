@@ -1,137 +1,165 @@
-//console.log("Processo Principal")
+console.log("Processo principal")
+
+const { app, BrowserWindow, nativeTheme, Menu, ipcMain } = require('electron')
 
 
+// Está linha está relacionada ao preload.js
+const path = require('node:path')
 
-//----------------------------------------------------------------------
-//Biblioteca do electron
-const { app, BrowserWindow, nativeTheme, Menu, shell } = require('electron')
 
-//----------------------------------------------------------------------
-//janela principal
+// Janela principal
 let win
 const createWindow = () => {
-    nativeTheme.themeSource = 'dark'
-   win = new BrowserWindow({
-    width: 800,
-    height: 600,
-    icon:"./src/public/img/xadrez.png",
-    /*minimizable: false,  remover a ação de minimizar a tela */
-    resizable: false, /* remover a ação de maximizar a tela */
-    /*autoHideMenuBar: true,  remover a ação de menu tela */
-    /*titleBarStyle: 'hidden'  remover a a barra de titulo e menu */
-  })
-
-  // menu personalizado
-  Menu.setApplicationMenu(Menu.buildFromTemplate(templete))
-
-  win.loadFile('./src/views/index.html')
-}
-//Fechamento da janela principal
-//--------------------------------------------------------------------------------------
-//janela Sobre
-const aboutwindow = () => {
-    const about = new BrowserWindow ({
-        width: 360,
-        height:220,
-        icon:"./src/public/img/xadrez.png",
-        autoHideMenuBar: true,
+    // a linha abaixo define o tema (claro ou escuro)
+    nativeTheme.themeSource = 'dark' //(dark ou light)
+    win = new BrowserWindow({
+        width: 800,
+        height: 600,
+        //autoHideMenuBar: true,
+        //minimizable: false,
         resizable: false,
+        webPreferences: {
+          preload: path.join(__dirname, 'preload.js') // Ativação do preload.jd
+        }
     })
+
+    // menu personalizado
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+
+    win.loadFile('./src/views/index.html')
+    //Recebimento dos pedidos para abertura de janela(renderizador)
+    ipcMain.on('client-window', ()=> {
+      clientWindow()
+    })
+    ipcMain.on('os-window', ()=> {
+      osWindow()
+    })
+}
+
+// Janela sobre
+function aboutWindow() {
+    nativeTheme.themeSource = 'dark'
+    // a linha abaixo obtém a janela principal
+    const main = BrowserWindow.getFocusedWindow()
+    let about
+    // Estabelecer uma relação hierárquica entre janelas
+    if (main) {
+        // Criar a janela sobre
+        about = new BrowserWindow({
+            width: 360,
+            height: 220,
+            autoHideMenuBar: true,
+            resizable: false,
+            minimizable: false,
+            parent: main,
+            modal: true
+        })
+    }
+    //carregar o documento html na janela
     about.loadFile('./src/views/sobre.html')
 }
-//-------------------------------------------------------------------------------------
-// Janela Secundaria
 
-const childwindow = () => {
-    const father = BrowserWindow.getFocusedWindow()
-    if(father){
-      const child = new BrowserWindow ({
-        width: 640,
-        height:480,
-        icon:"./src/public/img/xadrez.png",
-        autoHideMenuBar: true,
-        resizable: false,
-        parent: father,
-        modal: true /* essa função obriga o usuario focar em uma aplicação */
-    })
-    child.loadFile('./src/views/child.html')
+// Janela clientes
+let client
+function clientWindow() {
+    nativeTheme.themeSource = 'dark'
+    const main = BrowserWindow.getFocusedWindow()
+    if(main) {
+        client = new BrowserWindow({
+            width: 420,
+            height: 320,
+           // autoHideMenuBar: true,
+            resizable: false,
+            parent: main,
+            modal: true
+        })
     }
+    client.loadFile('./src/views/cliente.html')
+    client.center()  
 }
+//Fim Janela Cliente
+//-----------------------------------------------------------------------------
 
-//--------------------------------------------------------------------------------------
-// iniciar a aplicação
-app.whenReady().then(() => {
-  createWindow()
-  //aboutwindow()
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
+// Janela OS
+let os
+function osWindow() {
+    nativeTheme.themeSource = 'dark'
+    const main = BrowserWindow.getFocusedWindow()
+    if(main) {
+        os = new BrowserWindow({
+            width: 420,
+            height: 320,
+            autoHideMenuBar: true,
+            resizable: false,
+            parent: main,
+            modal: true
+        })
     }
-  })
+    os.loadFile('./src/views/os.html')
+    os.center()     
+}
+//Fim Janela OS
+//-----------------------------------------------------------------------------
+// Iniciar a aplicação
+app.whenReady().then(() => {
+    createWindow()
+
+    app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow()
+        }
+    })
 })
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
-      app.quit()
+        app.quit()
     }
-  })
+})
 
-// Reduzir logs não criticos
-
+//reduzir logs não críticos
 app.commandLine.appendSwitch('log-level', '3')
 
-// Templete do MENU
-const templete =[
-  {
-    label:'Cadastrar',
-    submenu: [
-        {
-          label: 'Clientes'
-        },
-        {
-            label: 'Os'
-        },
-        {
-          type:'separator' 
-        },
-        {
-            label: 'Sair',
-            click: () => app.quit(),
-            accelerator: 'ALT+F4'
-        }
-
-    ]      
-    },
-
+// template do menu
+const template = [
     {
-        label:'Arquivo',
+        label: 'Cadastro',
         submenu: [
             {
-              label: 'Janela Secundaria',
-              click: () => childwindow()
+                label: 'Clientes',
+                click: () => clientWindow()
+            },
+            {
+                label: 'OS',
+                click: () => osWindow()
+            },
+            {
+                type: 'separator'
             },
             {
                 label: 'Sair',
                 click: () => app.quit(),
-                accelerator: 'ALT+F4'
+                accelerator: 'Alt+F4'
             }
-        ]      
+        ]
     },
     {
-        label: 'Exibir',
+        label: 'Relatórios',
         submenu: [
             {
-                label:'Recarregar',
-                role:'reload'
+                label: 'Clientes'
             },
             {
-                label:'Ferramentas do desenvolvedor',
-                role:'toggleDevTools' /* Exbir a tela de desenvolvimento */
+                label: 'OS abertas'
             },
             {
-                type:'separator' /* crua uma linha para separar grupos do submenu */
-            },
+                label: 'OS concluídas'
+            }
+        ]
+    },
+    {
+        label: 'Ferramentas',
+        submenu: [
             {
                 label: 'Aplicar zoom',
                 role: 'zoomIn'
@@ -142,24 +170,28 @@ const templete =[
             },
             {
                 label: 'Restaurar o zoom padrão',
-                role: 'ResetZoom'
+                role: 'resetZoom'
+            },
+            {
+                type: 'separator'
+            },
+            {
+                label: 'Recarregar',
+                role: 'reload'
+            },
+            {
+                label: 'Ferramentas do desenvolvedor',
+                role: 'toggleDevTools'
             }
-        ]      
+        ]
     },
     {
         label: 'Ajuda',
         submenu: [
-          {
-            label: 'Docs',
-            click: () => shell.openExternal('https://github.com/sanchessky/Desenvolvimento_Desktop')
-          },
-          {
-            type:'separator'
-          },
-          {
-            label: 'sobre',
-            click: () => aboutwindow ()
-          } 
+            {
+                label: 'Sobre',
+                click: () => aboutWindow()
+            }
         ]
     }
 ]
