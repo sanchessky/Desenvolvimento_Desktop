@@ -19,3 +19,12 @@ footer p {
     color: #ffffff;
     padding: 7px;
 }
+/* Botão Reset */
+#btnReset {
+   width: 48px;
+   height: 48px;
+   background-image: url('../img/vassoura.png');
+   border: none;
+   cursor: pointer; 
+   margin-left: 10px;
+}

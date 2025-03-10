@@ -66,8 +66,8 @@ function clientWindow() {
     const main = BrowserWindow.getFocusedWindow()
     if(main) {
         client = new BrowserWindow({
-            width: 420,
-            height: 320,
+            width: 1020,
+            height: 620,
            // autoHideMenuBar: true,
             resizable: false,
             parent: main,
