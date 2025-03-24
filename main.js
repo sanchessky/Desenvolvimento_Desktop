@@ -6,6 +6,9 @@ const { app, BrowserWindow, nativeTheme, Menu, ipcMain } = require('electron')
 // Está linha está relacionada ao preload.js
 const path = require('node:path')
 
+//importação dos métodos conectar e desconectar
+const { conectar, desconectar } = require('./database')
+const { connect } = require('node:http2')
 
 // Janela principal
 let win
@@ -19,7 +22,7 @@ const createWindow = () => {
         //minimizable: false,
         resizable: false,
         webPreferences: {
-          preload: path.join(__dirname, 'preload.js') // Ativação do preload.jd
+            preload: path.join(__dirname, 'preload.js') // Ativação do preload.jd
         }
     })
 
@@ -28,11 +31,11 @@ const createWindow = () => {
 
     win.loadFile('./src/views/index.html')
     //Recebimento dos pedidos para abertura de janela(renderizador)
-    ipcMain.on('client-window', ()=> {
-      clientWindow()
+    ipcMain.on('client-window', () => {
+        clientWindow()
     })
-    ipcMain.on('os-window', ()=> {
-      osWindow()
+    ipcMain.on('os-window', () => {
+        osWindow()
     })
 }
 
@@ -64,18 +67,18 @@ let client
 function clientWindow() {
     nativeTheme.themeSource = 'dark'
     const main = BrowserWindow.getFocusedWindow()
-    if(main) {
+    if (main) {
         client = new BrowserWindow({
             width: 1020,
             height: 620,
-           // autoHideMenuBar: true,
+            // autoHideMenuBar: true,
             resizable: false,
             parent: main,
             modal: true
         })
     }
     client.loadFile('./src/views/cliente.html')
-    client.center()  
+    client.center()
 }
 //Fim Janela Cliente
 //-----------------------------------------------------------------------------
@@ -85,10 +88,10 @@ let os
 function osWindow() {
     nativeTheme.themeSource = 'dark'
     const main = BrowserWindow.getFocusedWindow()
-    if(main) {
+    if (main) {
         os = new BrowserWindow({
-            width: 420,
-            height: 320,
+            width: 1020,
+            height: 720,
             autoHideMenuBar: true,
             resizable: false,
             parent: main,
@@ -96,7 +99,7 @@ function osWindow() {
         })
     }
     os.loadFile('./src/views/os.html')
-    os.center()     
+    os.center()
 }
 //Fim Janela OS
 //-----------------------------------------------------------------------------
@@ -119,6 +122,37 @@ app.on('window-all-closed', () => {
 
 //reduzir logs não críticos
 app.commandLine.appendSwitch('log-level', '3')
+
+// Iniciar a conexão com o banco de dados 
+
+ipcMain.on('db-connect', async (event) => {
+    let conectado = await conectar()
+    // se conectado for igual a true
+    if (conectado) {
+        // enviar uma mensagem para o renderizador trocar o ícone, criar um delay de 0.5s para sincronizar a nuvem
+        setTimeout(()=> {
+            event.reply('db-status',"conectado")
+        }, 500) //500ms        
+    }
+})
+
+/*ipcMain.on('db-connect', async (event) => {
+    let conectado = await conectar()
+    // se conectado for igual true 
+    if (conectado) {
+        //enviar uma mensagem para o renderizador trocar o icone
+        setTimeout(() => {
+            event.reply('db-status', "conectado")
+        }, 500)
+        
+    }
+})*/
+    
+
+//Atenão !!! Desconecte do banco de dados quando a aplicação for finalizada
+app.on('before-quit', () => {
+    desconectar()
+})
 
 // template do menu
 const template = [
