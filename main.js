@@ -1,14 +1,23 @@
 console.log("Processo principal")
 
-const { app, BrowserWindow, nativeTheme, Menu, ipcMain } = require('electron')
+const { app, BrowserWindow, nativeTheme, Menu, ipcMain, dialog, shell } = require('electron')
 
-
-// Está linha está relacionada ao preload.js
+// Esta linha está relacionada ao preload.js
 const path = require('node:path')
 
-//importação dos métodos conectar e desconectar
-const { conectar, desconectar } = require('./database')
-const { connect } = require('node:http2')
+// Importação dos métodos conectar e desconectar (módulo de conexão)
+const { conectar, desconectar } = require('./database.js')
+
+// Importação da bibioteca JSPDF
+const { jspdf, default: jsPDF } = require('jspdf')
+
+// Importação da bibioteca fs(nativa do javascript) para manipulação de arquivos PDF
+const fs = require('fs')
+
+// Importação do Schema Clientes da camada model
+const clientModel = require('./src/models/Clientes.js')
+
+
 
 // Janela principal
 let win
@@ -21,8 +30,9 @@ const createWindow = () => {
         //autoHideMenuBar: true,
         //minimizable: false,
         resizable: false,
+        //ativação do preload.js
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js') // Ativação do preload.jd
+            preload: path.join(__dirname, 'preload.js')
         }
     })
 
@@ -30,13 +40,6 @@ const createWindow = () => {
     Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 
     win.loadFile('./src/views/index.html')
-    //Recebimento dos pedidos para abertura de janela(renderizador)
-    ipcMain.on('client-window', () => {
-        clientWindow()
-    })
-    ipcMain.on('os-window', () => {
-        osWindow()
-    })
 }
 
 // Janela sobre
@@ -62,26 +65,28 @@ function aboutWindow() {
     about.loadFile('./src/views/sobre.html')
 }
 
-// Janela clientes
+// Janela cliente
 let client
 function clientWindow() {
     nativeTheme.themeSource = 'dark'
     const main = BrowserWindow.getFocusedWindow()
     if (main) {
         client = new BrowserWindow({
-            width: 1020,
-            height: 620,
-            // autoHideMenuBar: true,
-            resizable: false,
+            width: 1010,
+            height: 680,
+            //autoHideMenuBar: true,
+            //resizable: false,
             parent: main,
-            modal: true
+            modal: true,
+            //ativação do preload.js
+            webPreferences: {
+                preload: path.join(__dirname, 'preload.js')
+            }
         })
     }
     client.loadFile('./src/views/cliente.html')
-    client.center()
+    client.center() //iniciar no centro da tela   
 }
-//Fim Janela Cliente
-//-----------------------------------------------------------------------------
 
 // Janela OS
 let os
@@ -90,9 +95,9 @@ function osWindow() {
     const main = BrowserWindow.getFocusedWindow()
     if (main) {
         os = new BrowserWindow({
-            width: 1020,
+            width: 1010,
             height: 720,
-            autoHideMenuBar: true,
+            // autoHideMenuBar: true,
             resizable: false,
             parent: main,
             modal: true
@@ -101,8 +106,7 @@ function osWindow() {
     os.loadFile('./src/views/os.html')
     os.center()
 }
-//Fim Janela OS
-//-----------------------------------------------------------------------------
+
 // Iniciar a aplicação
 app.whenReady().then(() => {
     createWindow()
@@ -120,36 +124,22 @@ app.on('window-all-closed', () => {
     }
 })
 
-//reduzir logs não críticos
+// reduzir logs não críticos
 app.commandLine.appendSwitch('log-level', '3')
 
-// Iniciar a conexão com o banco de dados 
-
+// iniciar a conexão com o banco de dados (pedido direto do preload.js)
 ipcMain.on('db-connect', async (event) => {
     let conectado = await conectar()
     // se conectado for igual a true
     if (conectado) {
         // enviar uma mensagem para o renderizador trocar o ícone, criar um delay de 0.5s para sincronizar a nuvem
-        setTimeout(()=> {
-            event.reply('db-status',"conectado")
+        setTimeout(() => {
+            event.reply('db-status', "conectado")
         }, 500) //500ms        
     }
 })
 
-/*ipcMain.on('db-connect', async (event) => {
-    let conectado = await conectar()
-    // se conectado for igual true 
-    if (conectado) {
-        //enviar uma mensagem para o renderizador trocar o icone
-        setTimeout(() => {
-            event.reply('db-status', "conectado")
-        }, 500)
-        
-    }
-})*/
-    
-
-//Atenão !!! Desconecte do banco de dados quando a aplicação for finalizada
+// IMPORTANTE ! Desconectar do banco de dados quando a aplicação for encerrada.
 app.on('before-quit', () => {
     desconectar()
 })
@@ -181,7 +171,8 @@ const template = [
         label: 'Relatórios',
         submenu: [
             {
-                label: 'Clientes'
+                label: 'Clientes',
+                click: () => relatiorioClientes()
             },
             {
                 label: 'OS abertas'
@@ -229,3 +220,116 @@ const template = [
         ]
     }
 ]
+
+// recebimento dos pedidos do renderizador para abertura de janelas (botões) autorizado no preload.js
+ipcMain.on('client-window', () => {
+    clientWindow()
+})
+
+ipcMain.on('os-window', () => {
+    osWindow()
+})
+
+// ============================================================
+// == Clientes - CRUD Create
+// recebimento do objeto que contem os dados do cliente
+ipcMain.on('new-client', async (event, client) => {
+    // Importante! Teste de recebimento dos dados do cliente
+    console.log(client)
+    // Cadastrar a estrutura de dados no banco de dados MongoDB
+    try {
+        // criar uma nova de estrutura de dados usando a classe modelo. Atenção! Os atributos precisam ser idênticos ao modelo de dados Clientes.js e os valores são definidos pelo conteúdo do objeto cliente
+        const newClient = new clientModel({
+            nomeCliente: client.nameCli,
+            cpfCliente: client.cpfCli,
+            emailCliente: client.emailCli,
+            foneCliente: client.phoneCli,
+            cepCliente: client.cepCli,
+            logradouroCliente: client.addressCli,
+            numeroCliente: client.numberCli,
+            complementoCliente: client.complementCli,
+            bairroCliente: client.neighborhoodCli,
+            cidadeCliente: client.cityCli,
+            ufCliente: client.ufCli
+        })
+        // salvar os dados do cliente no banco de dados
+        await newClient.save()
+        // Mensagem de confirmação
+        dialog.showMessageBox({
+            // custon
+            type: 'info',
+            title: "Aviso",
+            message: "Cliente adicionado com sucesso.",
+            buttons: ['OK']
+        }).then((result) => {
+            //ação ao pressionar o botão (result = 0)
+            if (result.response === 0) {
+                // pedido para o render limpar os campos e fazer um reset nas config 
+                event.reply('reset-form')
+            }
+
+        })
+    } catch (error) {
+        // se o código de erro for 11000(cpf duplicado) enviar uma mensagem ao usuario
+        if (error.code === 11000) {
+            dialog.showMessageBox({
+                type: 'error',
+                title: "Atenção",
+                message: "CPF já cadastrado.\n",
+                buttons: ['OK']
+            }).then((result) => {
+                if (result.response === 0) {
+                    //Limpar a caixa de input do CPF, focar esta caixa e deixar a borda em vermelho
+
+
+                }
+            })
+        }
+        console.log(error)
+    }
+})
+
+// == Fim - Clientes - CRUD Create
+// ============================================================
+
+
+// ========Relatorios de clientes==============================
+async function relatiorioClientes() {
+    try {
+        // consultar o banco de daods e obter a listagem de clientes cadastrados por ordem alfabética
+        const clientes = await clientModel.find().sort({ nomeCliente: 1 })
+        // ´- portrait | l - landscape | mm e a4 (folha)
+        const doc = new jsPDF('p', 'mm', 'a4')
+        // inserir a data atual no relatorio
+        // Definir o tamanho da fonte
+        const dataAtual = new Date().toLocaleDateString('pt-BR')
+        doc.setFontSize(16)
+        doc.text(`Data: ${dataAtual}`, 160, 10)
+        //  variavel de apoio na formatação
+        let y = 45
+        doc.text("Nome", 14, y)
+        doc.text("Telefone", 80, y)
+        doc.text("E-mail", 130, y)
+        y += 5
+        // desenhar uma linha com uma expessura 
+        doc.setLineWidth(0.5)
+        doc.line(10, y, 200, y) //10 (inicio) ----- 200 (fim)
+        // Escrever o titudo do arquivo
+        doc.text("Relatório de clientes", 14, 20) // x, y (mm)
+
+
+
+        // Definir o caminho do arquvo temporario e nome do arquivo
+        const tempDir = app.getPath('temp')
+        const filePath = path.join(tempDir, 'clientes.pdf')
+        //
+        doc.save(filePath)
+        shell.openPath(filePath)
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+
+
+// ========Fim do Relatorio de clientes
