@@ -19,6 +19,17 @@ function buscarCEP() {
         .catch(error => console.log(error))
 }
 
+// ============================================================
+// == Validar CPF =============================================
+function validarCPF() {
+
+}
+// == Fim - validar CPF =======================================
+// ============================================================
+
+// vetor global que será usado na manipulação dos dados
+let arrayClient = []
+
 // capturar o foco na busca pelo nome do cliente
 // a constante foco obtem o elemento html (input) identificado como 'searchClient'
 const foco = document.getElementById('searchClient')
@@ -31,6 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Foco na busca do cliente
     foco.focus()
 })
+// Função para manipular o evento da tecla enter
+function teclaEnter(event){
+    if (event.key === "Enter") {
+        event.preventDefault()
+    }
+}
 
 //captura dos dados dos inputs do formulário (Passo 1: Fluxo)
 let frmClient = document.getElementById('frmClient')
@@ -87,6 +104,7 @@ function buscarCliente() {
     //Validação de campo obrigatorio. Se o campo de busca não for preenchido enviar um alerta ao usuario. Fazer o main enviar um pedido para alertar o usuário
     if (name === "") {
         api.validateSearch()
+        foco.focus()
     } else {
         api.searchName(name) // Passo 2: envio do nome ao main
         // recebimento dos dados do cliente
@@ -115,9 +133,20 @@ function buscarCliente() {
             })
         })
     }
-
-
 }
+//setar o cliente não cadastrado 
+api.setClient((args)=>{
+    let campoBusca = document.getElementById('searchClient').value
+    nameClient.focus()
+    foco.value = ""
+    nameClient.value = campoBusca
+})
+/*api.setClientcpf((args)=>{
+    let campoBuscacpf = document.getElementById('inputCPFClient').value
+    cpfClient.focus()
+    foco.value = ""
+    cpfClient.value = campoBuscacpf
+})*/
 // == Fim CRUD Read ============================================
 
 //=====Reset form==================

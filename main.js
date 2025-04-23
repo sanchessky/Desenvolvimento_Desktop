@@ -386,6 +386,29 @@ ipcMain.on('search-name', async (event, name) => {
             ]
           })
         console.log(dataClient) // teste passos 3 e 4 (importante!)
+        //melhoria da experiencia do usuário(se o cliente não tiver cadastrado, dar um alerta informando se quer realizar o cadastrado do novo)
+        if (dataClient.length === 0) {
+            dialog.showMessageBox({
+                type: 'warning',
+                title: "Atenção!",
+                message: "Cliente não cadastrado.\n Deseja cadastrar esse cliente",
+                defaultId:0,
+                buttons:['Sim', 'Não']
+            }).then((result)=>{
+                if (result.response === 0) {
+                    //enviar ao renderizador um pedido para setar os campos(recortar do campo busca e colar no campo nome). se não limpar o formulario
+                    event.reply('set-client')
+                   // event.reply('set-clientcpf')
+                } else {
+                    event.reply('reset-form')
+                }
+
+            })
+        } else {
+
+        }
+
+
         // Passo 5:
         // enviando os dados do cliente ao rendererCliente
         // OBS: IPC só trabalha com string, então é necessário converter o JSON para string JSON.stringify(dataClient)
@@ -396,4 +419,14 @@ ipcMain.on('search-name', async (event, name) => {
     }
 })
 // == Fim - CRUD Read =========================================
+//==== Validadção de busca (preenchimento obrigatorio) CRUD Read
+ipcMain.on('validate-search',()=>{
+    dialog.showMessageBox({
+        type: 'warning',
+        title: "Atenção!",
+        message: "Preencha o campo de busca",
+        buttons: ['OK']
+    })
+})
+
 // ============================================================
