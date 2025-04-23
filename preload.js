@@ -20,5 +20,5 @@ contextBridge.exposeInMainWorld('api',
         renderClient:(dataClient)=> ipcRenderer.on('render-client',dataClient),
         validateSearch: () => ipcRenderer.send('validate-search'),
         setClient: (args) => ipcRenderer.on('set-client',args ),
-        //setClientcpf: (args) => ipcRenderer.on('set-clientcpf',args )
+        setClientcpf: (args) => ipcRenderer.on('set-clientcpf',args )
     })

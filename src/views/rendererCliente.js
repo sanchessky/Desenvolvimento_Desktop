@@ -42,12 +42,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Foco na busca do cliente
     foco.focus()
 })
-// Função para manipular o evento da tecla enter
+/* Função para manipular o evento da tecla enter
 function teclaEnter(event){
     if (event.key === "Enter") {
         event.preventDefault()
+        buscarCliente()
     }
 }
+//função para restaurar o padrao da tecla enter(submit)
+function restaurarEnter(){
+    frmClient.removeEventListener('keydown', teclaEnter)
+}
+
+//Escuta do evento Tecla Enter
+
+frmClient.addEventListener('keydown', teclaEnter)*/
+
 
 //captura dos dados dos inputs do formulário (Passo 1: Fluxo)
 let frmClient = document.getElementById('frmClient')
@@ -141,12 +151,12 @@ api.setClient((args)=>{
     foco.value = ""
     nameClient.value = campoBusca
 })
-/*api.setClientcpf((args)=>{
-    let campoBuscacpf = document.getElementById('inputCPFClient').value
+api.setClientcpf((args)=>{
+    let campoBuscacpf = document.getElementById('searchClient').value
     cpfClient.focus()
     foco.value = ""
     cpfClient.value = campoBuscacpf
-})*/
+})
 // == Fim CRUD Read ============================================
 
 //=====Reset form==================
