@@ -86,7 +86,7 @@ function buscarCliente() {
 
     //Validação de campo obrigatorio. Se o campo de busca não for preenchido enviar um alerta ao usuario. Fazer o main enviar um pedido para alertar o usuário
     if (name === "") {
-        
+        api.validateSearch()
     } else {
         api.searchName(name) // Passo 2: envio do nome ao main
         // recebimento dos dados do cliente
