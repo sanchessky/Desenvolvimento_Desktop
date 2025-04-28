@@ -146,21 +146,22 @@ function buscarCliente() {
 }
 //setar o cliente não cadastrado 
 api.setClient((args) => {
-    let campoBusca = document.getElementById('searchClient').value
+    let campoBusca = document.getElementById('searchClient').value.trim() //trim remover espaços
 
     // Regex para verificar se o valor é só número (CPF)
     if (/^\d{11}$/.test(campoBusca)) {
-        // Se for CPF
+        // É um número → CPF
         cpfClient.focus()
         foco.value = ""
         cpfClient.value = campoBusca
-    } else if (/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(campoBusca)) {
-        // Se for CPF com formatação
+    } 
+    else if(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(campoBusca)){
         cpfClient.focus()
         foco.value = ""
         cpfClient.value = campoBusca
-    } else {
-        // Se não for CPF, trata como nome
+    }
+    else {
+        // Não é número → Nome
         nameClient.focus()
         foco.value = ""
         nameClient.value = campoBusca
