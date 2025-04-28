@@ -127,6 +127,8 @@ let complementClient = document.getElementById('inputComplementClient')
 let neighborhoodClient = document.getElementById('inputNeighborhoodClient')
 let cityClient = document.getElementById('inputCityClient')
 let ufClient = document.getElementById('inputUFClient')
+// captura do ID do cliente (usado no delete e update)
+let id = document.getElementById('idClient')
 
 // ============================================================
 // == CRUD Create/Update ======================================
@@ -184,6 +186,7 @@ function buscarCliente() {
             arrayClient = dadosCliente
             // extrair os dados do cliente
             arrayClient.forEach((c) => {
+                id.value = c._id,
                 nameClient.value = c.nomeCliente,
                     cpfClient.value = c.cpfCliente,
                     emailClient.value = c.emailCliente,
@@ -196,10 +199,10 @@ function buscarCliente() {
                     cityClient.value = c.cidadeCliente,
                     ufClient.value = c.ufCliente
                       // bloqueio do botão adicinar
-                      btnCreate.disabled = True
+                      btnCreate.disabled = true
                       // Desbloqueio dos botão ediar e excluir
-                      btnbtnUpdate.disabled = false
-                      btnbtnbtnDelete.disabled = false
+                      btnUpdate.disabled = false
+                      btnDelete.disabled = false
             })
         })
     }
@@ -231,8 +234,18 @@ api.setClient((args) => {
 
 
 // == Fim CRUD Read ============================================
+// == Inicio CRUD Delete =========================================
+
+function apagarCliente() {
+    console.log(id.value) // passo 1 (receber do form o id)
+    api.deleteClient(id.value) // passo 2 (enviar o id ao main)
+    
+}
+
+// == Fim CRUD Delete ============================================
 
 //=====Reset form==================
+
 function resetForm() {
     //Limpar os campos e resetar o formulario com as configurações pré definidas.
     location.reload()
@@ -245,3 +258,4 @@ api.resetForm((args) => {
 
 //===== Fim - reset form ==================
 
+excluirCliente()

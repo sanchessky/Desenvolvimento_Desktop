@@ -15,7 +15,10 @@
     border: none;
     cursor: none;
 }
-
+/*ocultado o campo id do cliente*/
+#idClient {
+    display: none;
+}
 
 /* roda pé*/
 footer {
