@@ -401,7 +401,7 @@ ipcMain.on('search-name', async (event, name) => {
                 } else {
                     event.reply('reset-form')
                 }
-                
+
 
             })
         }
@@ -427,21 +427,19 @@ ipcMain.on('validate-search', () => {
 
 // ============================================================
 
-
-
 // ==Inicio CRUD DELETE ===============================================
-ipcMain.on('delete-client',async (event, id)=>{
+ipcMain.on('delete-client', async (event, id) => {
     console.log(id)
     try {
         // importante fazer a confirmação da exclusão
         //usar a variavel let janela
-        const {response} = await dialog.showMessageBox(client,{
-            type:'warning',
-            title:"Atenção",
+        const { response } = await dialog.showMessageBox(client, {
+            type: 'warning',
+            title: "Atenção",
             message: "Deseja realmente excluir esse cliente? \n Está ação não podera ser desfeita.",
-            buttons: ['Cancelar','Excluir']
+            buttons: ['Cancelar', 'Excluir']
         })
-        if(response === 1 ) {
+        if (response === 1) {
             //passo 3 excluir o registro do cliente 
             const delClient = await clientModel.findByIdAndDelete(id)
             event.reply('reset-form')
@@ -451,6 +449,50 @@ ipcMain.on('delete-client',async (event, id)=>{
 
     } catch (error) {
         console.log(error)
-    } 
+    }
 })
 // ==FIM CRUD DELETE ===============================================
+// ==Inicio CRUD UPDATE ===============================================
+ipcMain.on('update-client', async (event, client) => {
+    try {
+        const updateClient = await clientModel.findByIdAndUpdate(
+            client.idCli,
+
+            {
+                nomeCliente: client.nameCli,
+                cpfCliente: client.cpfCli,
+                emailCliente: client.emailCli,
+                foneCliente: client.phoneCli,
+                cepCliente: client.cepCli,
+                logradouroCliente: client.addressCli,
+                numeroCliente: client.numberCli,
+                complementoCliente: client.complementCli,
+                bairroCliente: client.neighborhoodCli,
+                cidadeCliente: client.cityCli,
+                ufCliente: client.ufCli
+            },
+            {
+                new: true
+            }
+        )
+        // Confirmação de mensagem funcione
+        dialog.showMessageBox({
+            type: 'info',
+            title: "Aviso",
+            message: "Dados do cliente alterados com sucesso",
+            buttons: ['OK']
+        }).then((result) => {
+            if (result.response === 0) {
+                event.reply('reset-form')
+            }
+        })
+    } catch (error) {
+        console.log(error)
+    }
+
+
+})
+
+
+
+// ==FIM CRUD UPDATE ==================================================
