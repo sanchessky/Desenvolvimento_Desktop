@@ -97,21 +97,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // Foco na busca do cliente
     foco.focus()
 })
-/* Função para manipular o evento da tecla enter
-function teclaEnter(event){
+// == Manipulação da tecla Enter ============================
+
+/* Função para manipular o evento da tecla Enter
+function teclaEnter(event) {
+    // se a tecla Enter for pressionada
     if (event.key === "Enter") {
-        event.preventDefault()
+        event.preventDefault() // ignorar o comportamento padrão
+        // associar o Enter a busca pelo cliente
         buscarCliente()
     }
 }
-//função para restaurar o padrao da tecla enter(submit)
-function restaurarEnter(){
+
+// Função para restaurar o padrão da tecla Enter (submit)
+function restaurarEnter() {
     frmClient.removeEventListener('keydown', teclaEnter)
 }
 
-//Escuta do evento Tecla Enter
-
+// "Escuta do evento Tecla Enter"
 frmClient.addEventListener('keydown', teclaEnter)*/
+
+// == Fim - manipulação tecla Enter ==========================
+
+
 
 
 //captura dos dados dos inputs do formulário (Passo 1: Fluxo)
@@ -139,23 +147,46 @@ frmClient.addEventListener('submit', async (event) => {
     event.preventDefault()
     // Teste importante (recebimento dos dados do formuláro - passo 1 do fluxo)
     console.log(nameClient.value, cpfClient.value, emailClient.value, phoneClient.value, cepClient.value, addressClient.value, numberClient.value, complementClient.value, neighborhoodClient.value, cityClient.value, ufClient.value)
-    //Criar um objeto para armazenar os dados do cliente antes de enviar ao main
-    const client = {
-        nameCli: nameClient.value,
-        cpfCli: cpfClient.value,
-        emailCli: emailClient.value,
-        phoneCli: phoneClient.value,
-        cepCli: cepClient.value,
-        addressCli: addressClient.value,
-        numberCli: numberClient.value,
-        complementCli: complementClient.value,
-        neighborhoodCli: neighborhoodClient.value,
-        cityCli: cityClient.value,
-        ufCli: ufClient.value
+    // estratégia usada para utulizar o submit para criar um novo cliente ou alterar os dados
+    if (id.value === "") {
+        //executar o metodo para cadastra um cliente
+        const client = {
+            nameCli: nameClient.value,
+            cpfCli: cpfClient.value,
+            emailCli: emailClient.value,
+            phoneCli: phoneClient.value,
+            cepCli: cepClient.value,
+            addressCli: addressClient.value,
+            numberCli: numberClient.value,
+            complementCli: complementClient.value,
+            neighborhoodCli: neighborhoodClient.value,
+            cityCli: cityClient.value,
+            ufCli: ufClient.value
+        }
+        // Enviar ao main o objeto client - (Passo 2: fluxo)
+        // uso do preload.js
+        api.newClient(client)
+    } else {
+        // excecutar o método para alterar os dados do cliente
+        const client = {
+            idCli: id.value,
+            nameCli: nameClient.value,
+            cpfCli: cpfClient.value,
+            emailCli: emailClient.value,
+            phoneCli: phoneClient.value,
+            cepCli: cepClient.value,
+            addressCli: addressClient.value,
+            numberCli: numberClient.value,
+            complementCli: complementClient.value,
+            neighborhoodCli: neighborhoodClient.value,
+            cityCli: cityClient.value,
+            ufCli: ufClient.value
+        }
+        api.updateClient(client)
     }
-    // Enviar ao main o objeto client - (Passo 2: fluxo)
-    // uso do preload.js
-    api.newClient(client)
+
+    //Criar um objeto para armazenar os dados do cliente antes de enviar ao main
+    
 })
 
 // == Fim CRUD Create/Update ==================================
@@ -258,4 +289,3 @@ api.resetForm((args) => {
 
 //===== Fim - reset form ==================
 
-excluirCliente()
