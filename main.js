@@ -17,6 +17,10 @@ const { jspdf, default: jsPDF } = require('jspdf')
 // Importação da biblioteca fs (nativa do JavaScript) para manipulação de arquivos (no caso arquivos pdf)
 const fs = require('fs')
 
+// Importação do recurso 'electron-prompt' (dialog de input)
+// 1º instalar o recurso: npm i electron-prompt
+const prompt = require('electron-prompt')
+
 // Janela principal
 let win
 const createWindow = () => {
@@ -98,7 +102,11 @@ function osWindow() {
             // autoHideMenuBar: true,
             resizable: false,
             parent: main,
-            modal: true
+            modal: true,
+            //ativação do preload.js
+            webPreferences: {
+                preload: path.join(__dirname, 'preload.js')
+            }
         })
     }
     os.loadFile('./src/views/os.html')
@@ -228,8 +236,16 @@ ipcMain.on('os-window', () => {
     osWindow()
 })
 
+
+
+//************************************************************/
+//***********************  Clientes  *************************/
+//************************************************************/
+
+
 // ============================================================
-// == Clientes - CRUD Create
+// == Clientes - CRUD Create ==================================
+
 // recebimento do objeto que contem os dados do cliente
 ipcMain.on('new-client', async (event, client) => {
     // Importante! Teste de recebimento dos dados do cliente
@@ -284,7 +300,7 @@ ipcMain.on('new-client', async (event, client) => {
     }
 })
 
-// == Fim - Clientes - CRUD Create
+// == Fim - Clientes - CRUD Create ============================
 // ============================================================
 
 
@@ -370,52 +386,12 @@ async function relatorioClientes() {
 
 // == Fim - relatório de clientes =============================
 // ============================================================
+
+
 // ============================================================
 // == CRUD Read ===============================================
-ipcMain.on('search-name', async (event, name) => {
-    //console.log("teste IPC search-name")
-    //console.log(name) // teste do passo 2 (importante!)
-    // Passos 3 e 4 busca dos dados do cliente no banco
-    //find({nomeCliente: name}) - busca pelo nome
-    //RegExp(name, 'i') - i (insensitive / Ignorar maiúsculo ou minúsculo)
-    try {
-        const dataClient = await clientModel.find({
-            $or: [
-                { nomeCliente: new RegExp(name, 'i') },
-                { cpfCliente: new RegExp(name, 'i') }
-            ]
-        })
-        console.log(dataClient) // teste passos 3 e 4 (importante!)
-        //melhoria da experiencia do usuário(se o cliente não tiver cadastrado, dar um alerta informando se quer realizar o cadastrado do novo)
-        if (dataClient.length === 0) {
-            dialog.showMessageBox({
-                type: 'warning',
-                title: "Atenção!",
-                message: "Cliente não cadastrado.\n Deseja cadastrar esse cliente",
-                defaultId: 0,
-                buttons: ['Sim', 'Não']
-            }).then((result) => {
-                if (result.response === 0) {
-                    //enviar ao renderizador um pedido para setar os campos(recortar do campo busca e colar no campo nome). se não limpar o formulario
-                    event.reply('set-client')
-                } else {
-                    event.reply('reset-form')
-                }
 
-
-            })
-        }
-        // Passo 5:
-        // enviando os dados do cliente ao rendererCliente
-        // OBS: IPC só trabalha com string, então é necessário converter o JSON para string JSON.stringify(dataClient)
-        event.reply('render-client', JSON.stringify(dataClient))
-
-    } catch (error) {
-        console.log(error)
-    }
-})
-// == Fim - CRUD Read =========================================
-//==== Validadção de busca (preenchimento obrigatorio) CRUD Read
+// Validação de busca (preenchimento obrigatório)
 ipcMain.on('validate-search', () => {
     dialog.showMessageBox({
         type: 'warning',
@@ -425,39 +401,91 @@ ipcMain.on('validate-search', () => {
     })
 })
 
-// ============================================================
-
-// ==Inicio CRUD DELETE ===============================================
-ipcMain.on('delete-client', async (event, id) => {
-    console.log(id)
+ipcMain.on('search-name', async (event, name) => {
+    //console.log("teste IPC search-name")
+    //console.log(name) // teste do passo 2 (importante!)
+    // Passos 3 e 4 busca dos dados do cliente no banco
+    //find({nomeCliente: name}) - busca pelo nome
+    //RegExp(name, 'i') - i (insensitive / Ignorar maiúsculo ou minúsculo)
     try {
-        // importante fazer a confirmação da exclusão
-        //usar a variavel let janela
-        const { response } = await dialog.showMessageBox(client, {
-            type: 'warning',
-            title: "Atenção",
-            message: "Deseja realmente excluir esse cliente? \n Está ação não podera ser desfeita.",
-            buttons: ['Cancelar', 'Excluir']
+        const dataClient = await clientModel.find({
+            nomeCliente: new RegExp(name, 'i')
         })
-        if (response === 1) {
-            //passo 3 excluir o registro do cliente 
-            const delClient = await clientModel.findByIdAndDelete(id)
-            event.reply('reset-form')
+        console.log(dataClient) // teste passos 3 e 4 (importante!)
 
+        // melhoria da experiência do usuário (se o cliente não estiver cadastrado, alertar o usuário e questionar se ele quer cadastrar este novo cliente. Se não quiser cadastrar, limpar os campos, se quiser cadastrar recortar o nome do cliente do campo de busca e colar no campo nome)
+
+        // se o vetor estiver vazio [] (cliente não cadastrado)
+        if (dataClient.length === 0) {
+            dialog.showMessageBox({
+                type: 'warning',
+                title: "Aviso",
+                message: "Cliente não cadastrado.\nDeseja cadastrar este cliente?",
+                defaultId: 0, //botão 0
+                buttons: ['Sim', 'Não'] // [0, 1]
+            }).then((result) => {
+                if (result.response === 0) {
+                    // enviar ao renderizador um pedido para setar os campos (recortar do campo de busca e colar no campo nome)
+                    event.reply('set-client')
+                } else {
+                    // limpar o formulário
+                    event.reply('reset-form')
+                }
+            })
         }
 
+        // Passo 5:
+        // enviando os dados do cliente ao rendererCliente
+        // OBS: IPC só trabalha com string, então é necessário converter o JSON para string JSON.stringify(dataClient)
+        event.reply('render-client', JSON.stringify(dataClient))
 
     } catch (error) {
         console.log(error)
     }
 })
-// ==FIM CRUD DELETE ===============================================
-// ==Inicio CRUD UPDATE ===============================================
-ipcMain.on('update-client', async (event, client) => {
+
+// == Fim - CRUD Read =========================================
+// ============================================================
+
+
+// ============================================================
+// == CRUD Delete =============================================
+
+ipcMain.on('delete-client', async (event, id) => {
+    console.log(id) // teste do passo 2 (recebimento do id)
     try {
+        //importante - confirmar a exclusão
+        //client é o nome da variável que representa a janela
+        const { response } = await dialog.showMessageBox(client, {
+            type: 'warning',
+            title: "Atenção!",
+            message: "Deseja excluir este cliente?\nEsta ação não poderá ser desfeita.",
+            buttons: ['Cancelar', 'Excluir'] //[0, 1]
+        })
+        if (response === 1) {
+            console.log("teste do if de excluir")
+            //Passo 3 - Excluir o registro do cliente
+            const delClient = await clientModel.findByIdAndDelete(id)
+            event.reply('reset-form')
+        }
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+// == Fim - CRUD Delete =======================================
+// ============================================================
+
+
+// ============================================================
+// == CRUD Update =============================================
+
+ipcMain.on('update-client', async (event, client) => {
+    console.log(client) //teste importante (recebimento dos dados do cliente)
+    try {
+        // criar uma nova de estrutura de dados usando a classe modelo. Atenção! Os atributos precisam ser idênticos ao modelo de dados Clientes.js e os valores são definidos pelo conteúdo do objeto cliente
         const updateClient = await clientModel.findByIdAndUpdate(
             client.idCli,
-
             {
                 nomeCliente: client.nameCli,
                 cpfCliente: client.cpfCli,
@@ -475,24 +503,78 @@ ipcMain.on('update-client', async (event, client) => {
                 new: true
             }
         )
-        // Confirmação de mensagem funcione
+        // Mensagem de confirmação
         dialog.showMessageBox({
+            //customização
             type: 'info',
             title: "Aviso",
             message: "Dados do cliente alterados com sucesso",
             buttons: ['OK']
         }).then((result) => {
+            //ação ao pressionar o botão (result = 0)
             if (result.response === 0) {
+                //enviar um pedido para o renderizador limpar os campos e resetar as configurações pré definidas (rótulo 'reset-form' do preload.js
                 event.reply('reset-form')
             }
         })
+
     } catch (error) {
         console.log(error)
     }
-
-
 })
 
+// == Fim - CRUD Update =======================================
+// ============================================================
 
 
-// ==FIM CRUD UPDATE ==================================================
+
+//************************************************************/
+//*******************  Ordem de Serviço  *********************/
+//************************************************************/
+
+
+// ============================================================
+// == Buscar OS ===============================================
+
+ipcMain.on('search-os', (event) => {
+    //console.log("teste: busca OS")
+    prompt({
+        title: 'Buscar OS',
+        label: 'Digite o número da OS:',
+        inputAttrs: {
+            type: 'text'
+        },
+        type: 'input',
+        width: 400,
+        height: 200
+    }).then((result) => {
+        if (result !== null) {
+            console.log(result)
+            //buscar a os no banco pesquisando pelo valor do result (número da OS)
+
+        }
+    })
+})
+
+// == Fim - Buscar OS =========================================
+// ============================================================
+
+
+// ============================================================
+// == Buscar cliente para vincular na OS(busca estilo Google) = 
+
+ipcMain.on('search-clients', async (event) => {
+    try {
+        // buscar no banco os clientes pelo nome em ordem alfabética
+        const clients = await clientModel.find().sort({ nomeCliente: 1 })
+        //console.log(clients) // teste do passo 2
+        // Passo 3: Envio dos clientes para o renderizador
+        // Obs: não esquecer de converter para String
+        event.reply('list-clients', JSON.stringify(clients))
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+// == Fim - Busca Cliente (estilo Google) =====================
+// ============================================================
