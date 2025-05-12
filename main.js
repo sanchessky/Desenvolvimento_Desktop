@@ -11,14 +11,16 @@ const { conectar, desconectar } = require('./database.js')
 // Importação do Schema Clientes da camada model
 const clientModel = require('./src/models/Clientes.js')
 
+// Importação do Schema OS da camada model
+const osModel = require('./src/models/Os.js')
+
 // Importação do pacote jspdf (npm i jspdf)
 const { jspdf, default: jsPDF } = require('jspdf')
 
 // Importação da biblioteca fs (nativa do JavaScript) para manipulação de arquivos (no caso arquivos pdf)
 const fs = require('fs')
 
-// Importação do recurso 'electron-prompt' (dialog de input)
-// 1º instalar o recurso: npm i electron-prompt
+// importação do pacote electron-prompt (dialog de input) - npm i electron-prompt
 const prompt = require('electron-prompt')
 
 // Janela principal
@@ -319,7 +321,7 @@ async function relatorioClientes() {
         // Inserir imagem no documento pdf
         // imagePath (caminho da imagem que será inserida no pdf)
         // imageBase64 (uso da biblioteca fs par ler o arquivo no formato png)
-        const imagePath = path.join(__dirname, 'src', 'public', 'img', 'TEC_SANCHES.png')
+        const imagePath = path.join(__dirname, 'src', 'public', 'img', 'logo.png')
         const imageBase64 = fs.readFileSync(imagePath, { encoding: 'base64' })
         doc.addImage(imageBase64, 'PNG', 5, 8) //(5mm, 8mm x,y)
         // definir o tamanho da fonte (tamanho equivalente ao word)
@@ -528,9 +530,77 @@ ipcMain.on('update-client', async (event, client) => {
 
 
 
-//************************************************************/
-//*******************  Ordem de Serviço  *********************/
-//************************************************************/
+/// ============================================================
+// == Buscar cliente para vincular na OS ======================
+
+ipcMain.on('search-clients', async (event) => {
+    try {
+        const clients = await clientModel.find().sort({ nomeCliente: 1 })
+        //console.log(clients)
+        event.reply('list-clients', JSON.stringify(clients))
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+// == Fim - Buscar cliente para vincular na OS ================
+
+// == CRUD Create - Gerar OS ==================================
+// Validação de busca (preenchimento obrigatório Id Cliente-OS)
+ipcMain.on('validate-client', (event) => {
+    dialog.showMessageBox({
+        type: 'warning',
+        title: "Aviso!",
+        message: "É obrigatório vincular o cliente na Ordem de Serviço",
+        buttons: ['OK']
+    }).then((result) => {
+        //ação ao pressionar o botão (result = 0)
+        if (result.response === 0) {
+            event.reply('set-search')
+        }
+    })
+})
+
+ipcMain.on('new-os', async (event, os) => {
+    //importante! teste de recebimento dos dados da os (passo 2)
+    console.log(os)
+    // Cadastrar a estrutura de dados no banco de dados MongoDB
+    try {
+        // criar uma nova de estrutura de dados usando a classe modelo. Atenção! Os atributos precisam ser idênticos ao modelo de dados OS.js e os valores são definidos pelo conteúdo do objeto os
+        const newOS = new osModel({
+            idCliente: os.idClient_OS,
+            statusOS: os.stat_OS,
+            computador: os.computer_OS,
+            serie: os.serial_OS,
+            problema: os.problem_OS,
+            tecnico: os.specialist_OS,
+            diagnostico: os.diagnosis_OS,
+            pecas: os.parts_OS,
+            valor: os.total_OS
+        })
+        // salvar os dados da OS no banco de dados
+        await newOS.save()
+        // Mensagem de confirmação
+        dialog.showMessageBox({
+            //customização
+            type: 'info',
+            title: "Aviso",
+            message: "OS gerada com sucesso",
+            buttons: ['OK']
+        }).then((result) => {
+            //ação ao pressionar o botão (result = 0)
+            if (result.response === 0) {
+                //enviar um pedido para o renderizador limpar os campos e resetar as configurações pré definidas (rótulo 'reset-form' do preload.js
+                event.reply('reset-form')
+            }
+        })
+    } catch (error) {
+        console.log(error)
+    }
+})
+
+// == Fim - CRUD Create - Gerar OS ===========================
+// ============================================================
 
 
 // ============================================================
@@ -557,24 +627,4 @@ ipcMain.on('search-os', (event) => {
 })
 
 // == Fim - Buscar OS =========================================
-// ============================================================
-
-
-// ============================================================
-// == Buscar cliente para vincular na OS(busca estilo Google) = 
-
-ipcMain.on('search-clients', async (event) => {
-    try {
-        // buscar no banco os clientes pelo nome em ordem alfabética
-        const clients = await clientModel.find().sort({ nomeCliente: 1 })
-        //console.log(clients) // teste do passo 2
-        // Passo 3: Envio dos clientes para o renderizador
-        // Obs: não esquecer de converter para String
-        event.reply('list-clients', JSON.stringify(clients))
-    } catch (error) {
-        console.log(error)
-    }
-})
-
-// == Fim - Busca Cliente (estilo Google) =====================
 // ============================================================
