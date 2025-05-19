@@ -32,10 +32,11 @@
     display: none;
 }
 
+
 /* rodapé */
 footer {
     width: 100%;
-    height: 55px;   
+    height: 55px;
     background-color: #0078d7;
     position: fixed;
     bottom: 0;
@@ -47,11 +48,20 @@ footer {
 footer p {
     color: #ffffff;
     padding-top: 7px;
-    font-size: 1.2em;    
+    font-size: 1.2em;
 }
 
-/* lista de clientes vinculados a OS */
+/* Lista de sugestões OS */
 #viewListSuggestion {
     z-index: 2;
-    max-width: 382px;
+    max-width: 301px;
+}
+
+#viewListSuggestion li {
+    background-color: #E0F0FF;
+}
+
+/* Dados do cliente - OS */
+#inputSearchClient, #viewListSuggestion, #inputIdClient, #inputNameClient, #inputPhoneClient {
+    font-size: 0.9em;
 }

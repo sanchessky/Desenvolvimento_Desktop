@@ -1,17 +1,25 @@
 /**
  * Processo de renderização
- * Tela Principal
+ * Tela principal
  */
-//console.log("Processo de Renderização")
+
+console.log("Processo de renderização")
+
+// Envio de uma mensagem para o main abrir a janela clinte
 function client() {
-    //console.log("Teste do botão cliente")
+    //console.log("teste do botão cliente")
+    //uso da api(autorizada no preload.js)
     api.clientWindow()
 }
+
+// Envio de uma mensagem para o main abrir a janela os
 function os() {
-    //console.log("Teste de botão os")
+    //console.log("teste do botão os")
+    //uso da api(autorizada no preload.js)
     api.osWindow()
 }
-// troca do icone banco de dados (usando a api do preload.js)
+
+// Troca do ícone do banco de dados (usando a api do preload.js)
 api.dbStatus((event, message) => {
     //teste do recebimento da mensagem do main
     console.log(message)

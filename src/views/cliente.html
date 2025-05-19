@@ -1,131 +1,151 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> clientes</title>
-    <!--Bootstrap.css-->
+    <title>Cadastro de clientes</title>
+    <!-- Bootstrap -->
     <link rel="stylesheet" href="../public/css/bootstrap.min.css">
-    <!--CSS personalizado-->
+    <!-- CSS personalizado -->
     <link rel="stylesheet" href="../public/css/style.css">
-    
-    <!--Impedir a execução de scripts externos ou não autorizados-->
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' ">
+    <!-- impedir a execução de scripts externos ou não autorizados -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'">
 </head>
+
 <body>
     <div class="container">
         <form id="frmClient" class="mt-2 row g-3">
-            <!--buscar cliente-->
+            <!-- Buscar cliente -->
             <div class="col-md-6">
-                <input type="text" class="form-control" id="searchClient" maxlength="30" spellcheck="false" >
+                <input type="text" class="form-control" id="searchClient" maxlength="30" spellcheck="false">
             </div>
             <div class="col-md-4">
-                <button type="button" class="btn btn-dark" id="btnRead" onclick="buscarCliente()" >Buscar</button>
+                <button type="button" class="btn btn-primary" id="btnRead" onclick="buscarCliente()">Buscar</button>
             </div>
-            <!--Linha-->
-            <hr class="mt-4 border border-primary border -1" >
-            <!--ID do cliente (oculto)-->
+
+            <!-- Linha -->
+            <hr class="mt-4 border border-primary border -1">
+
+            <!-- Id do cliente (oculto) -->
             <input type="text" id="idClient">
 
-
-            <!--Nome Cliente-->
-            <div class="col-md-7">
+            <!-- Nome -->
+            <div class="col-md-8">
                 <label for="inputNameClient" class="form-label">Nome</label>
                 <input type="text" class="form-control" id="inputNameClient" spellcheck="false" required maxlength="26">
             </div>
-            <!--CPF Cliente-->
-            <div class="col-md-5">
+
+            <!-- CPF -->
+            <div class="col-md-4">
                 <label for="inputCPFClient" class="form-label">CPF</label>
-                <input type="text" class="form-control" id="inputCPFClient" spellcheck="false"  required maxlength="15">
+                <input type="text" class="form-control" id="inputCPFClient" spellcheck="false" maxlength="15"
+                    onblur="validarCPF()" required>
             </div>
-            <!--E-mail Cliente-->
+
+            <!-- Email -->
             <div class="col-md-6">
                 <label for="inputEmailClient" class="form-label">E-mail</label>
-                <input type="text" class="form-control" id="inputEmailClient" spellcheck="false" maxlength="30">
+                <input type="email" class="form-control" id="inputEmailClient" spellcheck="false" maxlength="30">
             </div>
-            <!--Telefone -->
+
+            <!-- Telefone -->
             <div class="col-md-4">
                 <label for="inputPhoneClient" class="form-label">Telefone</label>
-                <input type="text" class="form-control" id="inputPhoneClient" spellcheck="false" required maxlength="15">
+                <input type="text" class="form-control" id="inputPhoneClient" spellcheck="false" maxlength="15"
+                    required>
             </div>
-             <!--CEP -->
-             <div class="col-md-2">
+
+            <!-- CEP -->
+            <div class="col-md-2">
                 <label for="inputCEPClient" class="form-label">CEP</label>
-                <input type="text" class="form-control" id="inputCEPClient" spellcheck="false" required maxlength="10" onblur="buscarCEP()">
-                <!--perder o foco onblur -->
+                <input type="text" class="form-control" id="inputCEPClient" spellcheck="false" maxlength="9" required
+                    onblur="buscarCEP()">
             </div>
-              <!--Logradouro -->
+
+            <!-- Logradouro -->
             <div class="col-md-6">
                 <label for="inputAddressClient" class="form-label">Logradouro</label>
-                <input type="text" class="form-control" id="inputAddressClient" spellcheck="false" required maxlength="30">
+                <input type="text" class="form-control" id="inputAddressClient" spellcheck="false" maxlength="30"
+                    required>
             </div>
-              <!--Número -->
+
+            <!-- Número -->
             <div class="col-md-3">
                 <label for="inputNumberClient" class="form-label">Número</label>
-                <input type="text" class="form-control" id="inputNumberClient" spellcheck="false" required maxlength="5">
+                <input type="text" class="form-control" id="inputNumberClient" spellcheck="false" maxlength="5"
+                    required>
             </div>
-              <!--Complemento -->
-              <div class="col-md-3">
+
+            <!-- Complemento -->
+            <div class="col-md-3">
                 <label for="inputComplementClient" class="form-label">Complemento</label>
-                <input type="text" class="form-control" id="inputComplementClient" spellcheck="false"  maxlength="10">
+                <input type="text" class="form-control" id="inputComplementClient" spellcheck="false" maxlength="12">
             </div>
-              <!--Bairro -->
+
+            <!-- Bairro -->
             <div class="col-md-5">
                 <label for="inputNeighborhoodClient" class="form-label">Bairro</label>
-                <input type="text" class="form-control" id="inputNeighborhoodClient" spellcheck="false" required maxlength="30">
+                <input type="text" class="form-control" id="inputNeighborhoodClient" spellcheck="false" maxlength="30"
+                    required>
             </div>
-               <!-- Cidade -->
-               <div class="col-md-4">
+
+            <!-- Cidade -->
+            <div class="col-md-4">
                 <label for="inputCityClient" class="form-label">Cidade</label>
-                <input type="text" class="form-control" id="inputCityClient" spellcheck="false" required maxlength="30">
+                <input type="text" class="form-control" id="inputCityClient" spellcheck="false" maxlength="30" required>
             </div>
+
             <!-- UF -->
-             <div class="col-md-3">
+            <div class="col-md-3">
                 <label for="inputUFClient" class="form-label">UF</label>
-                <select id="inputUFClient" class="form-select" required>
-                    <option value="" disabled selected></option>
-                    <option value="AC">Acre (AC)</option>
-                    <option value="AL">Alagoas (AL)</option>
-                    <option value="AP">Amapá (AP)</option>
-                    <option value="AM">Amazonas (AM)</option>
-                    <option value="BA">Bahia (BA)</option>
-                    <option value="CE">Ceará (CE)</option>
-                    <option value="DF">Distrito Federal (DF)</option>
-                    <option value="ES">Espírito Santo (ES)</option>
-                    <option value="GO">Goiás (GO)</option>
-                    <option value="MA">Maranhão (MA)</option>
-                    <option value="MT">Mato Grosso (MT)</option>
-                    <option value="MS">Mato Grosso do Sul (MS)</option>
-                    <option value="MG">Minas Gerais (MG)</option>
-                    <option value="PA">Pará (PA)</option>
-                    <option value="PB">Paraíba (PB)</option>
-                    <option value="PR">Paraná (PR)</option>
-                    <option value="PE">Pernambuco (PE)</option>
-                    <option value="PI">Piauí (PI)</option>
-                    <option value="RJ">Rio de Janeiro (RJ)</option>
-                    <option value="RN">Rio Grande do Norte (RN)</option>
-                    <option value="RS">Rio Grande do Sul (RS)</option>
-                    <option value="RO">Rondônia (RO)</option>
-                    <option value="RR">Roraima (RR)</option>
-                    <option value="SC">Santa Catarina (SC)</option>
-                    <option value="SP">São Paulo (SP)</option>
-                    <option value="SE">Sergipe (SE)</option>
-                    <option value="TO">Tocantins (TO)</option>
+                <select class="form-select" id="inputUFClient" name="UF" required>
+                    <option value=""></option>
+                    <option value="AC">AC - Acre</option>
+                    <option value="AL">AL - Alagoas</option>
+                    <option value="AP">AP - Amapá</option>
+                    <option value="AM">AM - Amazonas</option>
+                    <option value="BA">BA - Bahia</option>
+                    <option value="CE">CE - Ceará</option>
+                    <option value="DF">DF - Distrito Federal</option>
+                    <option value="ES">ES - Espírito Santo</option>
+                    <option value="GO">GO - Goiás</option>
+                    <option value="MA">MA - Maranhão</option>
+                    <option value="MT">MT - Mato Grosso</option>
+                    <option value="MS">MS - Mato Grosso do Sul</option>
+                    <option value="MG">MG - Minas Gerais</option>
+                    <option value="PA">PA - Pará</option>
+                    <option value="PB">PB - Paraíba</option>
+                    <option value="PR">PR - Paraná</option>
+                    <option value="PE">PE - Pernambuco</option>
+                    <option value="PI">PI - Piauí</option>
+                    <option value="RJ">RJ - Rio de Janeiro</option>
+                    <option value="RN">RN - Rio Grande do Norte</option>
+                    <option value="RS">RS - Rio Grande do Sul</option>
+                    <option value="RO">RO - Rondônia</option>
+                    <option value="RR">RR - Roraima</option>
+                    <option value="SC">SC - Santa Catarina</option>
+                    <option value="SP">SP - São Paulo</option>
+                    <option value="SE">SE - Sergipe</option>
+                    <option value="TO">TO - Tocantins</option>
                 </select>
-             </div>
-             <!--Button-->
-             <div class="mt-5" >
-                <button type="submit" class="btn btn-success" id="btnCreate">Adiconar</button>
+            </div>
+
+            <!-- Botões -->
+            <div class="mt-5">
+                <button type="submit" class="btn btn-success" id="btnCreate">Adicionar</button>
                 <button type="submit" class="btn btn-warning" id="btnUpdate">Editar</button>
-                <button type="button" class="btn btn-danger" id="btnDelete" onclick="apagarCliente()">Excluir</button>
+                <button type="button" class="btn btn-danger" id="btnDelete" onclick="excluirCliente()">Excluir</button>
                 <button type="reset" class="btn" id="btnReset" onclick="resetForm()"></button>
-             </div>
+            </div>
+
         </form>
     </div>
-    
-    <!--Bootstrap-->
-    <script src="../public/js/bootstrap.bundle.min.js"></script>
-    <!--Renderizador-->
+
+    <!-- Bootstrap -->
+    <script src="../public/js/bootstrap.min.js"></script>
+    <!-- renderizador -->
     <script src="rendererCliente.js"></script>
 </body>
+
 </html>

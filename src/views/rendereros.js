@@ -77,9 +77,10 @@ let specialist = document.getElementById('inputSpecialist')
 let diagnosis = document.getElementById('inputDiagnosis')
 let parts = document.getElementById('inputParts')
 let total = document.getElementById('inputTotal')
-// captura da OS (CRUD Delete e Update)
-let os = document.getElementById('inputOS')
-
+// captura do id da OS (CRUD Delete e Update)
+let idOS = document.getElementById('inputOS')
+// captura do id do campo data
+let dateOS = document.getElementById('inputData')
 
 // ============================================================
 // == CRUD Create/Update ======================================
@@ -93,8 +94,8 @@ frmOS.addEventListener('submit', async (event) => {
         api.validateClient()
     } else {
         // Teste importante (recebimento dos dados do formuláro - passo 1 do fluxo)
-        console.log(os.value, idClient.value, statusOS.value, computer.value, serial.value, problem.value, specialist.value, diagnosis.value, parts.value, total.value)
-        if (os.value === "") {
+        console.log(idOS.value, idClient.value, statusOS.value, computer.value, serial.value, problem.value, specialist.value, diagnosis.value, parts.value, total.value)
+        if (idOS.value === "") {
             //Gerar OS
             //Criar um objeto para armazenar os dados da OS antes de enviar ao main
             const os = {
@@ -122,15 +123,59 @@ frmOS.addEventListener('submit', async (event) => {
 // ============================================================
 
 
-// =============================================================
-// == Busca OS =================================================
+// ============================================================
+// == Buscar OS - CRUD Read ===================================
 
 function findOS() {
     api.searchOS()
+    
 }
 
-// == Fim - Busca OS ===========================================
-// =============================================================
+api.renderOS((event, dataOS) => {
+    console.log(dataOS)
+    const os = JSON.parse(dataOS)
+    // preencher os campos com os dados da OS
+    idOS.value = os._id
+    // formatar data:
+    const data = new Date(os.dataEntrada)
+    const formatada = data.toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+    })
+    dateOS.value = formatada
+    idClient.value = os.idCliente
+    statusOS.value = os.statusOS
+    computer.value = os.computador
+    serial.value = os.serie
+    problem.value = os.problema
+    specialist.value = os.tecnico
+    diagnosis.value = os.diagnostico
+    parts.value = os.pecas
+    total.value = os.valor
+
+    // Agora buscar os dados do cliente pelo idCliente para preencher nome e telefone
+    api.searchClients() // pedir a lista de clientes
+
+    api.listClients((event, clients) => {
+        const listaClientes = JSON.parse(clients)
+        // procurar o cliente com o idCliente da OS
+        const clienteEncontrado = listaClientes.find(c => c._id === os.idCliente)
+        if (clienteEncontrado) {
+            nameClient.value = clienteEncontrado.nomeCliente
+            phoneClient.value = clienteEncontrado.foneCliente
+        } else {
+            nameClient.value = ''
+            phoneClient.value = ''
+        }
+    })
+})
+
+// == Fim - Buscar OS - CRUD Read =============================
+// ============================================================
 
 
 // ============================================================

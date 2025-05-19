@@ -12,7 +12,6 @@ const clienteSchema = new Schema({
         type: String
     },    
     cpfCliente: {
-        VARCHAR:(14),
         type: String,
         unique: true,
         index: true
@@ -45,8 +44,6 @@ const clienteSchema = new Schema({
         type: String 
     },
 }, {versionKey: false}) //não versionar os dados armazenados
-
-
 
 // exportar para o main o modelo de dados
 // OBS: Clientes será o nome da coleção
